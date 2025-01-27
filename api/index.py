@@ -39,7 +39,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
 
         if marks:
-            response = {"marks": sorted(marks)}
+            response = {"marks": marks}
         else:
             response = {"error": "Name not found"}
 
