@@ -33,12 +33,12 @@ class handler(BaseHTTPRequestHandler):
         for entry in data:
             if entry['name'] in names:
                 marks.append(entry['marks'])
-        marks = sorted(marks)
+        
 
         self.end_headers()
 
         if marks:
-            response = {"marks": marks}
+            response = {"marks": sorted(marks)}
         else:
             response = {"error": "Name not found"}
 
