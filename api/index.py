@@ -3,41 +3,37 @@ import os
 from http.server import BaseHTTPRequestHandler
 
 class handler(BaseHTTPRequestHandler):
+
     def do_GET(self):
-        try:
-            # Get the directory of the current script
-            dir_path = os.path.dirname(os.path.abspath(__file__))
-            json_file_path = os.path.join(dir_path, "../q-vercel-python.json")
+        # Load JSON data from file
+        json_file_path = os.path.join(os.path.dirname(__file__), "q-vercel-python.json")
+        with open(json_file_path, "r") as file:
+            data = json.load(file)
 
-            # Load JSON data
-            with open(json_file_path, 'r') as f:
-                data = json.load(f)
+        # Parse query parameters
+        query_string = self.path.split('?')[-1]
+        params = {k: v for k, v in (param.split('=') for param in query_string.split('&') if '=' in param)}
 
-            # Parse query parameters
-            query_string = self.path.split('?')[-1]
-            params = dict(qc.split('=') for qc in query_string.split('&') if '=' in qc)
-
-            # Check if 'name' query parameter is present
-            if 'name' in params:
-                names = params['name'].split(',')
-                result = {name: data.get(name, "Not Found") for name in names}
-            else:
-                result = {"error": "Please provide a 'name' query parameter"}
-
-            # Send JSON response
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+        # Check for required 'name' parameter
+        if 'name' not in params:
+            self.send_response(400)
+            self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(result).encode('utf-8'))
+            self.wfile.write(json.dumps({"error": "Please provide a 'name' query parameter"}).encode('utf-8'))
+            return
 
-        except FileNotFoundError:
-            self.send_response(404)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": "Data file not found"}).encode('utf-8'))
-        
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+        # Find the requested name in the data
+        name = params['name']
+        result = [entry['marks'] for entry in data if entry['name'] == name]
+
+        # Send response based on search results
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+
+        if result:
+            response = {"name": name, "marks": result[0]}
+        else:
+            response = {"error": "Name not found"}
+
+        self.wfile.write(json.dumps(response).encode('utf-8'))
