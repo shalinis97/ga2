@@ -30,10 +30,11 @@ class handler(BaseHTTPRequestHandler):
 
         # Collect the marks for provided names
         marks = []
-        for entry in data:
-            if entry['name'] in names:
-                marks.append(entry['marks'])
-        
+        for name in names:
+            for entry in data:
+                if entry['name'] == name:
+                    marks.extend(entry['marks'])
+            
 
         self.end_headers()
 
