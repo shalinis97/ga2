@@ -6,9 +6,8 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         # Load JSON data from file
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        json_file_path = os.path.join(dir_path, "../q-vercel-python.json")
         
+        json_file_path = os.path.join(os.path.dirname(__file__), "q-vercel-python.json")
         with open(json_file_path, "r") as file:
             data = json.load(file)
 
