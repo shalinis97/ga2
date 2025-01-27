@@ -6,9 +6,9 @@ from urllib.parse import parse_qs, urlparse
 class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
+        # Load the JSON data
         dir_path = os.path.dirname(os.path.abspath(__file__))
         json_file_path = os.path.join(dir_path, "../q-vercel-python.json")
-        
         with open(json_file_path, "r") as file:
             data = json.load(file)
 
@@ -23,16 +23,19 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": "Please provide a 'name' query parameter"}).encode('utf-8'))
             return
 
-        # Look up marks for provided names
-        result = {name: entry['marks'] for entry in data for name in names if entry['name'] == name}
+        # Collect the marks for provided names
+        marks = []
+        for entry in data:
+            if entry['name'] in names:
+                marks.append(entry['marks'])
 
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
 
-        if result:
-            response = {"marks": result}
+        if marks:
+            response = {"marks": marks}
         else:
-            response = {"error": "Name(s) not found"}
+            response = {"error": "Name not found"}
 
         self.wfile.write(json.dumps(response).encode('utf-8'))
