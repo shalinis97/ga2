@@ -16,14 +16,8 @@ class handler(BaseHTTPRequestHandler):
         # Load the JSON data
         dir_path = os.path.dirname(os.path.abspath(__file__))
         json_file_path = os.path.join(dir_path, "../q-vercel-python.json")
-        
-        try:
-            with open(json_file_path, "r") as file:
-                data = json.load(file)
-        except FileNotFoundError:
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": "Data file not found"}).encode('utf-8'))
-            return
+        with open(json_file_path, "r") as file:
+            data = json.load(file)
 
         # Parse query parameters
         query_components = parse_qs(urlparse(self.path).query)
@@ -34,17 +28,18 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({"error": "Please provide a 'name' query parameter"}).encode('utf-8'))
             return
 
-        # Collect the marks in the order of query parameter 'name'
+        # Collect the marks for provided names
         marks = []
-        for name in names:
-            for entry in data:
-                if entry['name'] == name:
-                    marks.extend(entry['marks'])
+        
+        for entry in data:
+            if entry['name'] in names:
+                marks.append(entry['marks'])
+        
 
         self.end_headers()
 
         if marks:
-            response = {"marks": marks}
+            response = {"marks": (marks)}
         else:
             response = {"error": "Name not found"}
 
@@ -57,4 +52,3 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
-    
